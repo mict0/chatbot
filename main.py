@@ -33,7 +33,7 @@ except:
             labels.append(intent["tag"])
 
     words = [stemmer.stem(w.lower()) for w in words if w != "?"]
-    words = sorted(list(set(words)))  # get rid of duplicates
+    words = sorted(list(set(words)))
 
     labels = sorted(labels)
 
@@ -42,7 +42,7 @@ except:
 
     out_empty = [0 for _ in range(len(labels))]
 
-    for i, doc in enumerate(docs_x):
+    for x, doc in enumerate(docs_x):
         bag = []
 
         wrds = [stemmer.stem(w.lower()) for w in doc]
@@ -54,18 +54,18 @@ except:
                 bag.append(0)
 
         output_row = out_empty[:]
-        output_row[labels.index(docs_y[i])] = 1
+        output_row[labels.index(docs_y[x])] = 1
 
         training.append(bag)
         output.append(output_row)
 
-    training.append(bag)
+    training = numpy.array(training)
     output = numpy.array(output)
 
     with open("data.pickle", "wb") as f:
         pickle.dump((words, labels, training, output), f)
 
-tensorflow.compat.v1.reset_default_graph()
+tensorflow.reset_default_graph()
 
 net = tflearn.input_data(shape=[None, len(training[0])])
 net = tflearn.fully_connected(net, 8)
@@ -76,10 +76,11 @@ net = tflearn.regression(net)
 model = tflearn.DNN(net)
 
 try:
-    model.load("model.tflearn")
+    model.load("model/model.tflearn")
+
 except:
     model.fit(training, output, n_epoch=1000, batch_size=8, show_metric=True)
-    model.save("model.tflearn")
+    model.save("model/model.tflearn")
 
 
 def bag_of_words(s, words):
